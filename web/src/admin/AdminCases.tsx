@@ -9,8 +9,17 @@ import type { ReactElement } from 'react';
 
 const EMPTY_REWARD: AdminReward = { name: '', amount: 0, image: '💎', rarity: 'COMMON', probability: 10 };
 
-const CATEGORIES = ['POPULAR', 'PREMIUM', 'REGULAR', 'FREE'] as const;
-const RARITIES = ['COMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC'] as const;
+const CATEGORIES = ['POPULAR', 'PREMIUM', 'REGULAR', 'THEMATIC', 'FREE'] as const;
+const RARITIES = [
+  'COMMON',
+  'RARE',
+  'EPIC',
+  'LEGENDARY',
+  'MYTHIC',
+  'BRAINROT_GOD',
+  'SECRET',
+  'OG',
+] as const;
 
 export function AdminCases(): ReactElement {
   const toast = useToast();

@@ -76,15 +76,20 @@ enum CaseCategory {
   POPULAR
   PREMIUM
   REGULAR
+  THEMATIC
   FREE
 }
 
+/// Тиры редкости повторяют игровые в Steal a Brainrot
 enum Rarity {
   COMMON
   RARE
   EPIC
   LEGENDARY
   MYTHIC
+  BRAINROT_GOD
+  SECRET
+  OG
 }
 
 model Case {

@@ -14,6 +14,7 @@ const TABS: ReadonlyArray<{ id: Filter; label: string }> = [
   { id: 'POPULAR', label: CATEGORY_LABELS.POPULAR! },
   { id: 'PREMIUM', label: CATEGORY_LABELS.PREMIUM! },
   { id: 'REGULAR', label: CATEGORY_LABELS.REGULAR! },
+  { id: 'THEMATIC', label: CATEGORY_LABELS.THEMATIC! },
   { id: 'FREE', label: CATEGORY_LABELS.FREE! },
 ];
 

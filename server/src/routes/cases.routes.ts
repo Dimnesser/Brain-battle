@@ -4,7 +4,7 @@ import { getCaseDetail, listCases, openCase, recentWins } from '../services/case
 import { auth, requireAuth } from '../plugins/auth.js';
 
 const listQuery = z.object({
-  category: z.enum(['POPULAR', 'PREMIUM', 'REGULAR', 'FREE']).optional(),
+  category: z.enum(['POPULAR', 'PREMIUM', 'REGULAR', 'THEMATIC', 'FREE']).optional(),
 });
 
 const paramsSchema = z.object({ id: z.string().min(1).max(64) });

@@ -13,7 +13,9 @@ const rewardSchema = z.object({
   name: z.string().min(1).max(64),
   amount: z.number().int().min(0),
   image: z.string().max(32).default('💎'),
-  rarity: z.enum(['COMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC']).default('COMMON'),
+  rarity: z
+    .enum(['COMMON', 'RARE', 'EPIC', 'LEGENDARY', 'MYTHIC', 'BRAINROT_GOD', 'SECRET', 'OG'])
+    .default('COMMON'),
   probability: z.number().min(0).max(100),
 });
 
@@ -28,7 +30,7 @@ const caseSchema = z.object({
   image: z.string().max(32).default('⚡'),
   accent: z.string().max(24).default('violet'),
   price: z.number().int().min(0),
-  category: z.enum(['POPULAR', 'PREMIUM', 'REGULAR', 'FREE']).default('REGULAR'),
+  category: z.enum(['POPULAR', 'PREMIUM', 'REGULAR', 'THEMATIC', 'FREE']).default('REGULAR'),
   isActive: z.boolean().default(true),
   sortOrder: z.number().int().default(0),
   cooldownSeconds: z.number().int().positive().nullable().optional(),

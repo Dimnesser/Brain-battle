@@ -23,20 +23,50 @@ export const RARITY_ORDER: Record<string, number> = {
   EPIC: 2,
   LEGENDARY: 3,
   MYTHIC: 4,
+  BRAINROT_GOD: 5,
+  SECRET: 6,
+  OG: 7,
 };
 
 export const RARITY_LABELS: Record<string, string> = {
-  COMMON: 'Обычная',
-  RARE: 'Редкая',
-  EPIC: 'Эпическая',
-  LEGENDARY: 'Легендарная',
-  MYTHIC: 'Мифическая',
+  COMMON: 'Обычный',
+  RARE: 'Редкий',
+  EPIC: 'Эпический',
+  LEGENDARY: 'Легендарный',
+  MYTHIC: 'Мифический',
+  BRAINROT_GOD: 'Божество',
+  SECRET: 'Секретный',
+  OG: 'OG',
 };
+
+/** Короткие подписи для плашек на карточках барабана. */
+export const RARITY_SHORT: Record<string, string> = {
+  COMMON: 'COM',
+  RARE: 'RARE',
+  EPIC: 'EPIC',
+  LEGENDARY: 'LEG',
+  MYTHIC: 'MYTH',
+  BRAINROT_GOD: 'GOD',
+  SECRET: 'SECRET',
+  OG: 'OG',
+};
+
+/** Мутации Steal a Brainrot и их множители дохода. */
+export const MUTATIONS: ReadonlyArray<{ id: string; label: string; multiplier: number }> = [
+  { id: 'gold', label: 'Gold', multiplier: 1.25 },
+  { id: 'diamond', label: 'Diamond', multiplier: 1.5 },
+  { id: 'bloodrot', label: 'Bloodrot', multiplier: 2 },
+  { id: 'candy', label: 'Candy', multiplier: 4 },
+  { id: 'lava', label: 'Lava', multiplier: 6 },
+  { id: 'rainbow', label: 'Rainbow', multiplier: 10 },
+  { id: 'crystal', label: 'Crystal', multiplier: 13 },
+];
 
 export const CATEGORY_LABELS: Record<string, string> = {
   POPULAR: '🔥 Популярные',
   PREMIUM: '💎 Дорогие',
   REGULAR: '🎲 Обычные',
+  THEMATIC: '🎭 Тематические',
   FREE: '🆓 Бесплатные',
 };
 

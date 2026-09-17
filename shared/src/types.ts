@@ -1,7 +1,16 @@
 /** Контракты API — единственный источник правды для сервера и клиента. */
 
-export type CaseCategory = 'POPULAR' | 'PREMIUM' | 'REGULAR' | 'FREE';
-export type Rarity = 'COMMON' | 'RARE' | 'EPIC' | 'LEGENDARY' | 'MYTHIC';
+export type CaseCategory = 'POPULAR' | 'PREMIUM' | 'REGULAR' | 'THEMATIC' | 'FREE';
+/** Тиры редкости повторяют игровые в Steal a Brainrot. */
+export type Rarity =
+  | 'COMMON'
+  | 'RARE'
+  | 'EPIC'
+  | 'LEGENDARY'
+  | 'MYTHIC'
+  | 'BRAINROT_GOD'
+  | 'SECRET'
+  | 'OG';
 export type BonusType = 'DAILY' | 'STREAK' | 'SUBSCRIPTION' | 'REFERRAL_MILESTONE' | 'FREE_CASE';
 export type PromoType = 'BALANCE' | 'DEPOSIT_PERCENT' | 'XP';
 export type WithdrawalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';

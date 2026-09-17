@@ -239,6 +239,13 @@ export function RarityBadge({ rarity }: { rarity: string }): ReactElement {
 
 export function rarityClass(rarity: string): string {
   switch (rarity) {
+    case 'OG':
+      // OG — вершина тира, поэтому единственный с градиентом
+      return 'bg-gradient-to-r from-fuchsia-500/25 via-amber-400/25 to-cyan-400/25 text-white';
+    case 'SECRET':
+      return 'bg-red-600/20 text-red-300';
+    case 'BRAINROT_GOD':
+      return 'bg-emerald-400/15 text-emerald-300';
     case 'MYTHIC':
       return 'bg-rose-500/15 text-rose-300';
     case 'LEGENDARY':
@@ -254,6 +261,12 @@ export function rarityClass(rarity: string): string {
 
 export function rarityGlow(rarity: string): string {
   switch (rarity) {
+    case 'OG':
+      return 'shadow-[0_0_42px_-6px_rgba(232,121,249,0.9)] border-fuchsia-300/60';
+    case 'SECRET':
+      return 'shadow-[0_0_38px_-6px_rgba(220,38,38,0.85)] border-red-400/55';
+    case 'BRAINROT_GOD':
+      return 'shadow-[0_0_36px_-8px_rgba(52,211,153,0.8)] border-emerald-300/50';
     case 'MYTHIC':
       return 'shadow-[0_0_34px_-8px_rgba(244,63,94,0.75)] border-rose-400/45';
     case 'LEGENDARY':

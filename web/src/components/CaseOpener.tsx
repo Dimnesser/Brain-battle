@@ -1,14 +1,20 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { formatCoins, type CaseDetailDto, type CaseRewardDto, type OpenCaseResult } from '@nexus/shared';
+import {
+  RARITY_SHORT,
+  formatCoins,
+  type CaseDetailDto,
+  type CaseRewardDto,
+  type OpenCaseResult,
+} from '@nexus/shared';
 import { ApiError, api } from '../lib/api';
 import { hapticNotify, haptic } from '../lib/telegram';
 import { useToast } from '../store/toast';
 import { Button, RarityBadge, Spinner, rarityClass, rarityGlow } from './ui';
 import type { ReactElement } from 'react';
 
-const ITEM_WIDTH = 104;
+const ITEM_WIDTH = 108;
 const ITEM_GAP = 12;
 const STRIDE = ITEM_WIDTH + ITEM_GAP;
 const SPIN_DURATION = 4.4;
@@ -175,9 +181,14 @@ export function CaseOpener({ item, onClose, onFinished, balance }: Props): React
                   🎉 Поздравляем!
                 </p>
                 <p className="mt-1 text-[13px] text-text-muted">Ты получил</p>
-                <p className="mt-1 font-display text-4xl font-extrabold text-gradient">
-                  {result.reward.image} {formatCoins(result.reward.amount)} B
-                </p>
+                <p className="mt-1 text-[40px] leading-none">{result.reward.image}</p>
+                <p className="mt-1 font-display text-lg font-bold">{result.reward.name}</p>
+                <div className="mt-1 flex items-center justify-center gap-2">
+                  <p className="font-display text-3xl font-extrabold text-gradient">
+                    {formatCoins(result.reward.amount)} B
+                  </p>
+                  <RarityBadge rarity={result.reward.rarity} />
+                </div>
 
                 {result.opening.profit > 0 && (
                   <p className="mt-1 text-[13px] font-semibold text-success">
@@ -227,14 +238,19 @@ export function CaseOpener({ item, onClose, onFinished, balance }: Props): React
               {item.rewards.map((reward) => (
                 <div
                   key={reward.id}
-                  className="flex items-center justify-between rounded-xl bg-white/[0.035] px-3 py-2"
+                  className="flex items-center gap-2.5 rounded-xl bg-white/[0.035] px-3 py-2"
                 >
-                  <span className="flex items-center gap-2 text-[13px]">
-                    <span>{reward.image}</span>
-                    <span className="font-semibold">{formatCoins(reward.amount)} B</span>
-                    <RarityBadge rarity={reward.rarity} />
+                  <span className="text-[17px] leading-none">{reward.image}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-[13px] font-semibold">{reward.name}</span>
+                    <span className="mt-0.5 flex items-center gap-1.5">
+                      <span className="text-[12px] font-bold tabular-nums text-secondary">
+                        {formatCoins(reward.amount)} B
+                      </span>
+                      <RarityBadge rarity={reward.rarity} />
+                    </span>
                   </span>
-                  <span className="text-[12px] tabular-nums text-text-muted">{reward.chance}%</span>
+                  <span className="flex-shrink-0 text-[12px] tabular-nums text-text-muted">{reward.chance}%</span>
                 </div>
               ))}
             </div>
@@ -249,14 +265,19 @@ function RollItem({ reward, highlighted }: { reward: CaseRewardDto; highlighted:
   return (
     <div
       style={{ width: ITEM_WIDTH }}
-      className={`flex h-[112px] flex-shrink-0 flex-col items-center justify-center rounded-2xl border bg-surface-light/60 transition-all duration-300 ${
+      className={`flex h-[128px] flex-shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl border bg-surface-light/60 px-1 transition-all duration-300 ${
         highlighted ? `scale-105 ${rarityGlow(reward.rarity)}` : 'border-white/5'
       }`}
     >
-      <span className="text-[30px] leading-none">{reward.image}</span>
-      <span className="mt-1.5 font-display text-[13px] font-bold tabular-nums">{formatCoins(reward.amount)}</span>
+      <span className="text-[28px] leading-none">{reward.image}</span>
+      <span className="mt-1 line-clamp-2 px-1.5 text-center text-[10px] font-semibold leading-tight text-text">
+        {reward.name}
+      </span>
+      <span className="mt-0.5 font-display text-[12px] font-bold tabular-nums text-secondary">
+        {formatCoins(reward.amount)}
+      </span>
       <span className={`mt-1 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase ${rarityClass(reward.rarity)}`}>
-        {reward.rarity}
+        {RARITY_SHORT[reward.rarity] ?? reward.rarity}
       </span>
     </div>
   );
