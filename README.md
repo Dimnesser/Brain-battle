@@ -319,7 +319,7 @@ docker compose -f docker/docker-compose.yml exec server npx prisma db seed
 | --- | --- | --- |
 | POST | `/api/auth/telegram` | вход по `initData`, выдача JWT |
 | GET | `/api/user` | профиль и статистика |
-| GET | `/api/user/transactions` | история операций |
+| GET | `/api/transactions` · `/api/user/transactions` | история операций |
 | GET | `/api/cases` | список кейсов (фильтр `?category=`) |
 | GET | `/api/cases/:id` | кейс с наградами и шансами |
 | POST | `/api/cases/:id/open` | открыть кейс |

@@ -8,7 +8,7 @@ import { corsOrigins, env, isProduction } from './env.js';
 import { loggerOptions } from './logger.js';
 import { registerErrorHandler } from './plugins/error-handler.js';
 import { authRoutes } from './routes/auth.routes.js';
-import { userRoutes } from './routes/user.routes.js';
+import { transactionRoutes, userRoutes } from './routes/user.routes.js';
 import { caseRoutes } from './routes/cases.routes.js';
 import { bonusRoutes } from './routes/bonus.routes.js';
 import { promoRoutes } from './routes/promo.routes.js';
@@ -59,6 +59,7 @@ export async function buildApp(): Promise<FastifyInstance> {
     async (api) => {
       await api.register(authRoutes, { prefix: '/auth' });
       await api.register(userRoutes, { prefix: '/user' });
+      await api.register(transactionRoutes, { prefix: '/transactions' });
       await api.register(caseRoutes, { prefix: '/cases' });
       await api.register(bonusRoutes, { prefix: '/bonus' });
       await api.register(promoRoutes, { prefix: '/promo' });

@@ -1,4 +1,4 @@
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { TRANSACTION_LABELS, type TransactionDto } from '@nexus/shared';
 import { prisma } from '../db.js';
@@ -14,6 +14,39 @@ const historyQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
 });
 
+/** История операций игрока — используется двумя маршрутами. */
+async function transactionsHandler(request: FastifyRequest): Promise<{ items: TransactionDto[] }> {
+  const { userId } = auth(request);
+  const query = historyQuery.parse(request.query ?? {});
+
+  const transactions = await prisma.transaction.findMany({
+    where: {
+      userId,
+      ...(query.type === 'ALL' ? {} : { type: query.type }),
+    },
+    orderBy: { createdAt: 'desc' },
+    take: query.limit,
+  });
+
+  const items: TransactionDto[] = transactions.map((transaction) => ({
+    id: transaction.id,
+    type: transaction.type,
+    status: transaction.status,
+    amount: transaction.amount,
+    balanceAfter: transaction.balanceAfter,
+    description: transaction.description ?? TRANSACTION_LABELS[transaction.type] ?? null,
+    createdAt: transaction.createdAt.toISOString(),
+  }));
+
+  return { items };
+}
+
+/** Короткий маршрут /api/transactions — тот же обработчик, что и /api/user/transactions. */
+export async function transactionRoutes(app: FastifyInstance): Promise<void> {
+  app.addHook('preHandler', requireAuth);
+  app.get('/', transactionsHandler);
+}
+
 export async function userRoutes(app: FastifyInstance): Promise<void> {
   app.addHook('preHandler', requireAuth);
 
@@ -22,31 +55,7 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     return { user: await toUserDto(user) };
   });
 
-  app.get('/transactions', async (request) => {
-    const { userId } = auth(request);
-    const query = historyQuery.parse(request.query ?? {});
-
-    const transactions = await prisma.transaction.findMany({
-      where: {
-        userId,
-        ...(query.type === 'ALL' ? {} : { type: query.type }),
-      },
-      orderBy: { createdAt: 'desc' },
-      take: query.limit,
-    });
-
-    const items: TransactionDto[] = transactions.map((transaction) => ({
-      id: transaction.id,
-      type: transaction.type,
-      status: transaction.status,
-      amount: transaction.amount,
-      balanceAfter: transaction.balanceAfter,
-      description: transaction.description ?? TRANSACTION_LABELS[transaction.type] ?? null,
-      createdAt: transaction.createdAt.toISOString(),
-    }));
-
-    return { items };
-  });
+  app.get('/transactions', transactionsHandler);
 
   app.get('/openings', async (request) => {
     const { userId } = auth(request);
