@@ -1,0 +1,410 @@
+// NEXUS — схема базы данных
+// Документация: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+//  Пользователи
+// ─────────────────────────────────────────────
+
+model User {
+  id           String  @id @default(cuid())
+  telegramId   BigInt  @unique
+  username     String?
+  firstName    String?
+  lastName     String?
+  avatar       String?
+  languageCode String?
+
+  balance Int @default(0)
+  level   Int @default(1)
+  xp      Int @default(0)
+
+  referralCode String  @unique
+  referredById String?
+  referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id], onDelete: SetNull)
+  referrals    User[]  @relation("UserReferrals")
+
+  isAdmin   Boolean @default(false)
+  isBanned  Boolean @default(false)
+  banReason String?
+
+  // Денормализованная статистика — нужна для рейтингов и профиля
+  totalWon       Int @default(0)
+  totalDeposited Int @default(0)
+  totalWagered   Int @default(0)
+  casesOpened    Int @default(0)
+  referralEarned Int @default(0)
+
+  loginStreak Int       @default(0)
+  lastLoginAt DateTime?
+  lastSeenAt  DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  openings      CaseOpening[]
+  transactions  Transaction[]
+  promoUses     PromoCodeUse[]
+  bonusClaims   BonusClaim[]
+  withdrawals   Withdrawal[]
+  deposits      Deposit[]
+  notifications Notification[]
+  adminActions  AdminAction[]  @relation("AdminActor")
+  referralsMade Referral[]     @relation("ReferralReferrer")
+  referralOf    Referral?      @relation("ReferralReferee")
+
+  @@index([balance])
+  @@index([totalWon])
+  @@index([casesOpened])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// ─────────────────────────────────────────────
+//  Кейсы и награды
+// ─────────────────────────────────────────────
+
+enum CaseCategory {
+  POPULAR
+  PREMIUM
+  REGULAR
+  FREE
+}
+
+enum Rarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+  MYTHIC
+}
+
+model Case {
+  id              String       @id @default(cuid())
+  slug            String       @unique
+  name            String
+  description     String?
+  image           String       @default("⚡")
+  accent          String       @default("violet")
+  price           Int
+  category        CaseCategory @default(REGULAR)
+  isActive        Boolean      @default(true)
+  sortOrder       Int          @default(0)
+  // Для бесплатных кейсов: сколько секунд ждать между открытиями
+  cooldownSeconds Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  rewards  CaseReward[]
+  openings CaseOpening[]
+
+  @@index([category, isActive])
+  @@map("cases")
+}
+
+model CaseReward {
+  id     String @id @default(cuid())
+  caseId String
+  case   Case   @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  name        String
+  amount      Int
+  image       String @default("💎")
+  rarity      Rarity @default(COMMON)
+  // Вес в процентах. Сумма весов кейса нормализуется на сервере.
+  probability Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  openings CaseOpening[]
+
+  @@index([caseId])
+  @@map("case_rewards")
+}
+
+model CaseOpening {
+  id       String     @id @default(cuid())
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  caseId   String
+  case     Case       @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  rewardId String
+  reward   CaseReward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  price  Int
+  amount Int
+  profit Int
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@index([amount])
+  @@map("case_openings")
+}
+
+// ─────────────────────────────────────────────
+//  Финансовые операции
+// ─────────────────────────────────────────────
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  WITHDRAWAL_REFUND
+  CASE_PURCHASE
+  CASE_REWARD
+  BONUS
+  PROMO
+  REFERRAL
+  ADMIN_ADJUST
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Transaction {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type         TransactionType
+  status       TransactionStatus @default(COMPLETED)
+  // Знаковая величина: списание — отрицательное, начисление — положительное
+  amount       Int
+  balanceAfter Int
+  description  String?
+  metadata     Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("transactions")
+}
+
+enum DepositStatus {
+  PENDING
+  PAID
+  FAILED
+  EXPIRED
+}
+
+model Deposit {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount       Int
+  bonusAmount  Int           @default(0)
+  bonusPercent Int           @default(0)
+  currency     String        @default("RUB")
+  provider     String
+  providerRef  String?
+  payUrl       String?
+  status       DepositStatus @default(PENDING)
+  metadata     Json?
+
+  createdAt DateTime  @default(now())
+  paidAt    DateTime?
+
+  @@unique([provider, providerRef])
+  @@index([userId, createdAt])
+  @@index([status])
+  @@map("deposits")
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Withdrawal {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount     Int
+  fee        Int              @default(0)
+  payout     Int
+  method     String
+  // Реквизиты никогда не попадают в логи
+  requisites String
+  status     WithdrawalStatus @default(PENDING)
+  comment    String?
+
+  processedById String?
+  processedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("withdrawals")
+}
+
+// ─────────────────────────────────────────────
+//  Промокоды
+// ─────────────────────────────────────────────
+
+enum PromoType {
+  BALANCE
+  DEPOSIT_PERCENT
+  XP
+}
+
+model PromoCode {
+  id   String @id @default(cuid())
+  code String @unique
+
+  type           PromoType @default(BALANCE)
+  amount         Int
+  maxActivations Int?
+  activations    Int       @default(0)
+  perUserLimit   Int       @default(1)
+  expiresAt      DateTime?
+  isActive       Boolean   @default(true)
+  description    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  uses PromoCodeUse[]
+
+  @@map("promo_codes")
+}
+
+model PromoCodeUse {
+  id          String    @id @default(cuid())
+  promoCodeId String
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount Int
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([promoCodeId, userId])
+  @@map("promo_code_uses")
+}
+
+// ─────────────────────────────────────────────
+//  Бонусы
+// ─────────────────────────────────────────────
+
+enum BonusType {
+  DAILY
+  STREAK
+  SUBSCRIPTION
+  REFERRAL_MILESTONE
+  FREE_CASE
+}
+
+model BonusClaim {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type      BonusType
+  amount    Int
+  // Ключ периода: YYYY-MM-DD для ежедневных, иное — для одноразовых.
+  // Уникальность пары (user, type, periodKey) исключает повторное получение.
+  periodKey String
+  metadata  Json?
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, type, periodKey])
+  @@index([userId, createdAt])
+  @@map("bonus_claims")
+}
+
+// ─────────────────────────────────────────────
+//  Рефералы
+// ─────────────────────────────────────────────
+
+model Referral {
+  id         String @id @default(cuid())
+  referrerId String
+  referrer   User   @relation("ReferralReferrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  refereeId  String @unique
+  referee    User   @relation("ReferralReferee", fields: [refereeId], references: [id], onDelete: Cascade)
+
+  referrerBonus Int @default(0)
+  refereeBonus  Int @default(0)
+  earned        Int @default(0)
+
+  createdAt DateTime @default(now())
+
+  @@index([referrerId])
+  @@map("referrals")
+}
+
+// ─────────────────────────────────────────────
+//  Уведомления и аудит
+// ─────────────────────────────────────────────
+
+enum NotificationType {
+  FREE_CASE_READY
+  DEPOSIT_SUCCESS
+  BIG_WIN
+  NEW_REFERRAL
+  WITHDRAWAL_APPROVED
+  WITHDRAWAL_REJECTED
+  PROMO
+  SYSTEM
+}
+
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    NotificationType
+  title   String
+  body    String
+  payload Json?
+
+  isRead Boolean   @default(false)
+  isSent Boolean   @default(false)
+  sentAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([isSent, createdAt])
+  @@map("notifications")
+}
+
+model AdminAction {
+  id      String @id @default(cuid())
+  adminId String
+  admin   User   @relation("AdminActor", fields: [adminId], references: [id], onDelete: Cascade)
+
+  action     String
+  targetType String?
+  targetId   String?
+  payload    Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([adminId, createdAt])
+  @@map("admin_actions")
+}

@@ -1,0 +1,50 @@
+{
+  "name": "nexus-game-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NEXUS — игровая Telegram Mini App платформа: кейсы, бонусы, промокоды, внутренняя валюта",
+  "workspaces": [
+    "shared",
+    "server",
+    "bot",
+    "web"
+  ],
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "dev": "concurrently -n server,bot,web -c magenta,cyan,green \"npm:dev:server\" \"npm:dev:bot\" \"npm:dev:web\"",
+    "dev:server": "npm run dev -w @nexus/server",
+    "dev:bot": "npm run dev -w @nexus/bot",
+    "dev:web": "npm run dev -w @nexus/web",
+    "build": "npm run build -w @nexus/server && npm run build -w @nexus/bot && npm run build -w @nexus/web",
+    "start": "concurrently -n server,bot -c magenta,cyan \"npm:start:server\" \"npm:start:bot\"",
+    "start:server": "npm run start -w @nexus/server",
+    "start:bot": "npm run start -w @nexus/bot",
+    "typecheck": "npm run typecheck -w @nexus/shared && npm run typecheck -w @nexus/server && npm run typecheck -w @nexus/bot && npm run typecheck -w @nexus/web",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:reset": "prisma migrate reset --force",
+    "db:studio": "prisma studio",
+    "docker:up": "docker compose -f docker/docker-compose.yml up -d --build",
+    "docker:down": "docker compose -f docker/docker-compose.yml down",
+    "docker:logs": "docker compose -f docker/docker-compose.yml logs -f"
+  },
+  "prisma": {
+    "schema": "prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "6.19.3"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.3",
+    "concurrently": "10.0.5",
+    "prisma": "6.19.3",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  }
+}

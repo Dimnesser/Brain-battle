@@ -1,0 +1,24 @@
+{
+  "name": "@nexus/bot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "start": "node dist/index.cjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@nexus/shared": "*",
+    "@prisma/client": "6.19.3",
+    "dotenv": "17.2.4",
+    "grammy": "1.46.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.3",
+    "tsup": "8.5.1",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  }
+}
