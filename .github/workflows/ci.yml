@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  check:
+    name: Проверка типов, тесты и сборка
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: nexus
+          POSTGRES_DB: nexus_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U nexus"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://nexus:nexus@localhost:5432/nexus_test?schema=public
+      TEST_DATABASE_URL: postgresql://nexus:nexus@localhost:5432/nexus_test?schema=public
+      JWT_SECRET: ci_secret_ci_secret_ci_secret_123456
+      BOT_TOKEN: '123456:CI-PLACEHOLDER-TOKEN'
+      WEBAPP_URL: http://localhost:5173
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Установка зависимостей
+        run: npm ci
+
+      - name: Генерация Prisma Client
+        run: npm run db:generate
+
+      - name: Проверка типов
+        run: npm run typecheck
+
+      - name: Тесты
+        run: npm test
+
+      - name: Проверка миграций и seed
+        run: |
+          npm run db:migrate
+          npm run db:seed
+
+      - name: Production-сборка
+        run: npm run build

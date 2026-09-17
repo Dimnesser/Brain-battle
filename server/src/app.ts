@@ -5,7 +5,7 @@ import rateLimit from '@fastify/rate-limit';
 import websocket from '@fastify/websocket';
 import { ERROR_CODES } from '@nexus/shared';
 import { corsOrigins, env, isProduction } from './env.js';
-import { loggerOptions } from './logger.js';
+import { NexusLogController, loggerOptions } from './logger.js';
 import { registerErrorHandler } from './plugins/error-handler.js';
 import { authRoutes } from './routes/auth.routes.js';
 import { transactionRoutes, userRoutes } from './routes/user.routes.js';
@@ -26,7 +26,8 @@ export async function buildApp(): Promise<FastifyInstance> {
     trustProxy: true,
     // Защита от гигантских тел запросов
     bodyLimit: 256 * 1024,
-    disableRequestLogging: isProduction,
+    // Fastify ожидает экземпляр контроллера, а не класс
+    logController: new NexusLogController(),
   });
 
   // Заголовки безопасности. CSP для API не нужен, статику отдаёт nginx/vite
